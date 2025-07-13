@@ -1,87 +1,96 @@
-import {useState} from 'react'
-import authService from '../appwrite/auth'
+import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import {login as authLogin} from "../store/authSlice"
-import {Button, Input, Logo} from './index'
-import { useDispatch } from "react-redux"
-import { useForm } from "react-hook-form"
+import { login } from '../store/authSlice'
+import { Button, Input, Logo } from './index'
+import { useDispatch } from 'react-redux'
+import authService from '../appwrite/auth'
+import { useForm } from 'react-hook-form'
 
 function Signup() {
     const navigate = useNavigate()
-    const dispatch = useDispatch()
-    const {register, handleSubmit} = useForm()
     const [error, setError] = useState("")
+    const dispatch = useDispatch()
+    const { register, handleSubmit, formState: { errors } } = useForm()
 
     const create = async (data) => {
         setError("")
         try {
-            const session = await authService.createAccount(data)
-            if (session) {
+            const userData = await authService.createAccount(data)
+            if (userData) {
                 const userData = await authService.getCurrentUser()
-                if (userData) dispatch(authLogin);
-                navigate('/')
-            } 
+                if (userData) dispatch(login(userData))
+                navigate("/")
+            }
         } catch (error) {
-            setError(error)
+            setError(error.message)
         }
     }
-  return (
-    <div className="flex items-center justify-center">
-            <div className={`mx-auto w-full max-w-lg bg-gray-100 rounded-xl p-10 border border-black/10`}>
-            <div className="mb-2 flex justify-center">
-                    <span className="inline-block w-full max-w-[100px]">
-                        <Logo width="100%" />
-                    </span>
-                </div>
-                <h2 className="text-center text-2xl font-bold leading-tight">Sign up to create account</h2>
-                <p className="mt-2 text-center text-base text-black/60">
-                    Already have an account?&nbsp;
-                    <Link
-                        to="/login"
-                        className="font-medium text-primary transition-all duration-200 hover:underline"
-                    >
-                        Sign In
-                    </Link>
-                </p>
-                {error && <p className="text-red-600 mt-8 text-center">{error}</p>}
 
-                <form onSubmit={handleSubmit(create)}>
-                    <div className='space-y-5'>
+    return (
+        <div className="flex items-center justify-center min-h-screen bg-gray-50">
+            <div className="mx-auto w-full max-w-md">
+                <div className="bg-white rounded-2xl shadow-sm p-8">
+                    <div className="mb-8 text-center">
+                        <Logo width="100px" />
+                        <h2 className="mt-6 text-2xl font-bold text-gray-900">
+                            Create your account
+                        </h2>
+                        <p className="mt-2 text-sm text-gray-600">
+                            Already have an account?{' '}
+                            <Link
+                                to="/login"
+                                className="font-medium text-blue-600 hover:text-blue-500"
+                            >
+                                Sign in
+                            </Link>
+                        </p>
+                    </div>
+
+                    {error && (
+                        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                            <p className="text-sm text-red-600">{error}</p>
+                        </div>
+                    )}
+
+                    <form onSubmit={handleSubmit(create)} className="space-y-6">
                         <Input
-                        label="Full Name: "
-                        placeholder="Enter your full name"
-                        {...register("name", {
-                            required: true,
-                        })}
+                            label="Full Name"
+                            placeholder="Enter your full name"
+                            {...register("name", {
+                                required: "Full name is required",
+                            })}
+                            error={errors.name?.message}
                         />
                         <Input
-                        label="Email: "
-                        placeholder="Enter your email"
-                        type="email"
-                        {...register("email", {
-                            required: true,
-                            validate: {
-                                matchPatern: (value) => /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(value) ||
-                                "Email address must be a valid address",
-                            }
-                        })}
+                            label="Email"
+                            placeholder="Enter your email"
+                            type="email"
+                            {...register("email", {
+                                required: "Email is required",
+                                pattern: {
+                                    value: /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+                                    message: "Email address must be valid",
+                                },
+                            })}
+                            error={errors.email?.message}
                         />
                         <Input
-                        label="Password: "
-                        type="password"
-                        placeholder="Enter your password"
-                        {...register("password", {
-                            required: true,})}
+                            label="Password"
+                            type="password"
+                            placeholder="Enter your password"
+                            {...register("password", {
+                                required: "Password is required",
+                            })}
+                            error={errors.password?.message}
                         />
-                        <Button type="submit" className="w-full">
+                        <Button type="submit" variant="primary" className="w-full">
                             Create Account
                         </Button>
-                    </div>
-                </form>
+                    </form>
+                </div>
             </div>
-
-    </div>
-  )
+        </div>
+    )
 }
 
 export default Signup
