@@ -15,7 +15,7 @@ export class Service{
         this.bucket = new Storage(this.client);
     }
 
-    async createPost({title, slug, content, featuredImage, status, userId}){
+    async createPost({title, slug, content, feature_image, status, user_id}){
         try {
             return await this.databases.createDocument(
                 config.appwriteDatabaseID,
@@ -24,9 +24,9 @@ export class Service{
                 {
                     title : title,
                     content : content,
-                    feature_image : featuredImage,
+                    feature_image : feature_image,
                     status : status,
-                    user_id : userId,
+                    user_id : user_id,
                 }
             )
         } catch (error) {
@@ -96,7 +96,8 @@ export class Service{
             return await this.bucket.createFile(
                 config.appwriteBucketID,
                 ID.unique(),
-                feature_image
+                feature_image,
+                [ Permission.read(Role.any()) ]
             )
         } catch (error) {
             throw error;
@@ -116,13 +117,16 @@ export class Service{
     }
 
     getFileDownload(feature_image) {
-    if (!feature_image) return null;
+    if (!feature_image){
+        console.log("returning")
+        return null;
+    } 
+        
     try {
-        const url = this.bucket.getFileDownload(
+        const url = this.bucket.getFileView(
             config.appwriteBucketID,
             feature_image
         );
-        console.log("Download URL:", url);
         return url;
     } catch (error) {
         console.error("Error fetching file download URL:", error);

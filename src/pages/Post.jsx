@@ -11,7 +11,6 @@ function Post() {
     const navigate = useNavigate()
     const userData = useSelector((state) => state.auth.userData)
     const isAuthor = post && userData ? post.user_id === userData.$id : false;
-
     useEffect(() => {
         if (slug) {
             service.getPost(slug).then((post) => {
